@@ -1,0 +1,1 @@
+![](kehillah_programming_languages_word_cloud.png)
