@@ -12,6 +12,11 @@ import numpy as np
 from PIL import Image
 import matplotlib.colors as clr
 
+width = 24
+height = 36
+scale1 = 50
+scale2 = 1
+
 def get_pl_from_li(li):
     pl = re.sub(" ?/.*", "", li.text)
     pl = re.sub(" ?\(.*", "", pl)
@@ -30,6 +35,23 @@ def get_programming_languages():
     last_pl_index = list_items.index("Z shell")
     return list_items[first_pl_index:last_pl_index+1]
 
+def get_trends_specific():
+    # C++ programming language,21549,C++
+    programming_languages = ["'c++' programming language"]
+
+    pytrends = TrendReq(retries=2, backoff_factor=0.1)
+
+    subset_dfs = []
+
+    i = 50
+    kw_list = [f"{pl} programming language" for pl in programming_languages]
+    pytrends.build_payload(kw_list, cat=31, timeframe='today 5-y', geo='', gprop='')
+    df = pytrends.interest_over_time()
+    popularity_series = df.sum(axis=0)
+    popularity_df = pd.DataFrame(popularity_series, columns = ["popularity"])
+    popularity_df = popularity_df.loc[popularity_df.index != "isPartial"]
+    popularity_df["programming_language"] = [get_pl_from_kw(pl) for pl in kw_list]
+    popularity_df.to_csv(f"plpop{i}.csv")
 
 def get_trends_data():
 
@@ -81,10 +103,12 @@ def combine_dfs():
     df = pd.concat(subset_dfs)
     df.to_csv("programming_language_popularity.csv")
 
-# get_trends_data()
-# pls = get_programming_languages()
-# print(pls)
-# combine_dfs()
+# get_trends_specific()
+
+# # get_trends_data()
+# # pls = get_programming_languages()
+# # print(pls)
+combine_dfs()
 
 df = pd.read_csv("programming_language_popularity.csv")
 df = df.loc[df["popularity"] > 0]
@@ -131,8 +155,8 @@ wordcloud = WordCloud(
     background_color="white", 
     mode="RGBA", 
     max_words=300, 
-    width = 2400,
-    height = 3600,
+    width = width*scale1,
+    height = height*scale1,
     # scale = 10,
     relative_scaling = 0.5,
     font_path = font_path,
@@ -155,7 +179,10 @@ wordcloud = WordCloud(
 # plt.show()
 
 # Display the generated image:
+scale_factor = scale2
+plt.figure(figsize=[width*scale_factor,height*scale_factor])
 plt.imshow(wordcloud, interpolation='bilinear')
+plt.tight_layout(pad=3)
 plt.axis("off")
 plt.savefig("kehillah_programming_languages_word_cloud.png", format="png")
 plt.show()

@@ -1,1 +1,1 @@
-![](kehillah_programming_languages_word_cloud.png)
+![](kehillah_programming_languages_word_cloud_01.png)
